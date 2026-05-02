@@ -5,9 +5,12 @@ export const createTaskSchema = z.object({
   description: z.string().optional(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).default('TODO'),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
-  due_date: z.string().refine(val => !isNaN(Date.parse(val)), {
+  due_date: z.string().optional().refine(val => {
+    if (!val) return true;
+    return !isNaN(Date.parse(val));
+  }, {
     message: "Invalid date format"
-  }).optional().refine(val => {
+  }).refine(val => {
     if (!val) return true;
     return new Date(val) >= new Date(new Date().setHours(0,0,0,0));
   }, {
@@ -22,9 +25,12 @@ export const updateTaskSchema = z.object({
   description: z.string().optional(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
-  due_date: z.string().refine(val => !isNaN(Date.parse(val)), {
+  due_date: z.string().optional().refine(val => {
+    if (!val) return true;
+    return !isNaN(Date.parse(val));
+  }, {
     message: "Invalid date format"
-  }).optional(),
+  }),
   assignee_id: z.string().optional(),
   order: z.number().optional(),
 });

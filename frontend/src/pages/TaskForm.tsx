@@ -66,8 +66,10 @@ export const TaskForm = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      const pid = projectId || task?.project_id;
+      queryClient.invalidateQueries({ queryKey: ['tasks', pid] });
       queryClient.invalidateQueries({ queryKey: ['task', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       toast.success(isEditing ? 'Task updated!' : 'Task created!');
       if (!isEditing) navigate(-1);
       setIsEditingTitle(false);
@@ -112,7 +114,11 @@ export const TaskForm = () => {
       toast.error('Title is required');
       return;
     }
-    mutation.mutate(formData);
+    
+    const loadingToast = toast.loading(isEditing ? 'Updating task...' : 'Creating task...');
+    mutation.mutate(formData, {
+      onSettled: () => toast.dismiss(loadingToast),
+    });
   };
 
   if (isEditing && taskLoading) {

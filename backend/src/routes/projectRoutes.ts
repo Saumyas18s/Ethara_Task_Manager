@@ -16,13 +16,13 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', listProjects);
-router.post('/', verifyRole(['ADMIN']), createProject);
+router.post('/', createProject); // Allow any user to create (Logic inside handles role)
 router.get('/:id', getProjectDetail);
-router.put('/:id', verifyRole(['ADMIN']), updateProject);
-router.delete('/:id', verifyRole(['ADMIN']), deleteProject);
+router.put('/:id', updateProject); // Logic inside handles ownership/admin
+router.delete('/:id', deleteProject); // Logic inside handles ownership/admin
 
-router.post('/:id/members', verifyRole(['ADMIN']), addMember);
-router.delete('/:id/members/:uid', verifyRole(['ADMIN']), removeMember);
+router.post('/:id/members', addMember); // Logic inside handles ownership/admin
+router.delete('/:id/members/:uid', removeMember); // Logic inside handles ownership/admin
 
 // Task routes nested in projects
 router.get('/:id/tasks', listProjectTasks);

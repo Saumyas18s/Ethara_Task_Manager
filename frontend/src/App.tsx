@@ -41,8 +41,8 @@ function App() {
               <Route path="/projects" element={<ProjectList />} />
               <Route path="/teams" element={<TeamList />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/projects/:projectId" element={<ProjectDetail />} />
               <Route path="/projects/:projectId/tasks/new" element={<TaskForm />} />
+              <Route path="/projects/:projectId" element={<ProjectDetail />} />
               <Route path="/tasks/:taskId" element={<TaskForm />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Route>

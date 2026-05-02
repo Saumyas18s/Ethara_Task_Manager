@@ -67,15 +67,15 @@ export const createTask = async (req: AuthRequest, res: Response, next: NextFunc
     const task = await prisma.task.create({
       data: {
         title: validatedData.title,
-        description: validatedData.description,
+        description: validatedData.description || '',
         status: validatedData.status,
         priority: validatedData.priority,
         due_date: validatedData.due_date ? new Date(validatedData.due_date) : null,
         project_id,
-        assignee_id: validatedData.assignee_id,
+        assignee_id: validatedData.assignee_id || null,
         created_by: userId,
         order: (maxOrder._max.order || 0) + 1,
-        parent_id: (req.body as any).parent_id || null // Support creating subtask
+        parent_id: (req.body as any).parent_id || null
       }
     });
 
@@ -140,7 +140,8 @@ export const updateTask = async (req: AuthRequest, res: Response, next: NextFunc
       where: { id },
       data: {
         ...validatedData,
-        due_date: validatedData.due_date ? new Date(validatedData.due_date) : undefined
+        due_date: validatedData.due_date ? new Date(validatedData.due_date) : undefined,
+        assignee_id: validatedData.assignee_id === '' ? null : (validatedData.assignee_id || undefined)
       }
     });
 

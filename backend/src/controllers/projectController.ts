@@ -34,12 +34,14 @@ export const createProject = async (req: AuthRequest, res: Response, next: NextF
     const validatedData = createProjectSchema.parse(req.body);
     const userId = req.user?.id!;
 
+    console.log(`Creating project: ${validatedData.name} for user ${userId}`);
+
     const project = await prisma.project.create({
       data: {
         name: validatedData.name,
-        description: validatedData.description,
-        color: validatedData.color,
-        emoji: validatedData.emoji,
+        description: validatedData.description || '',
+        color: validatedData.color || '#5B4FCF',
+        emoji: validatedData.emoji || '🚀',
         owner_id: userId,
         members: {
           create: {
@@ -53,7 +55,8 @@ export const createProject = async (req: AuthRequest, res: Response, next: NextF
     await logActivity(project.id, userId, 'PROJECT_CREATED', `Project "${project.name}" created`);
 
     return sendResponse(res, 201, project, 'Project created successfully');
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Project creation failed:', error);
     next(error);
   }
 };

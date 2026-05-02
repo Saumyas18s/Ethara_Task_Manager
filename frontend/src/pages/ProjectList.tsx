@@ -43,7 +43,19 @@ export const ProjectList = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createMutation.mutate(newProject);
+    if (!newProject.name.trim()) {
+      toast.error('Project name is required');
+      return;
+    }
+    if (newProject.name.length < 2) {
+      toast.error('Project name must be at least 2 characters');
+      return;
+    }
+    
+    const loadingToast = toast.loading('Creating project...');
+    createMutation.mutate(newProject, {
+      onSettled: () => toast.dismiss(loadingToast),
+    });
   };
 
   const filteredProjects = projects?.filter((p: any) => 
@@ -82,15 +94,13 @@ export const ProjectList = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {user?.role === 'ADMIN' && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-accent text-white px-5 py-2.5 md:py-3 rounded-xl md:rounded-2xl flex items-center justify-center space-x-2 hover:bg-accent-hover transition-all shadow-lg shadow-accent/20 active:scale-95 whitespace-nowrap"
-            >
-              <Plus size={20} />
-              <span className="font-bold">New Project</span>
-            </button>
-          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-accent text-white px-5 py-2.5 md:py-3 rounded-xl md:rounded-2xl flex items-center justify-center space-x-2 hover:bg-accent-hover transition-all shadow-lg shadow-accent/20 active:scale-95 whitespace-nowrap"
+          >
+            <Plus size={20} />
+            <span className="font-bold">New Project</span>
+          </button>
         </div>
       </header>
 
@@ -164,14 +174,14 @@ export const ProjectList = () => {
           title="No projects found" 
           description={searchTerm ? "Try adjusting your search terms." : "Create your first project to get started!"} 
           icon={Briefcase}
-          action={user?.role === 'ADMIN' && (
+          action={
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-accent text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-accent-hover transition-all shadow-lg shadow-accent/20"
+              className="bg-accent text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-accent-hover"
             >
               Start Project
             </button>
-          )}
+          }
         />
       )}
 
