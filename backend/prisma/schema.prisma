@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  password_hash String
+  avatar_url    String?
+  role          Role            @default(MEMBER)
+  created_at    DateTime        @default(now())
+  
+  projects      Project[]       @relation("ProjectOwner")
+  memberships   ProjectMember[]
+  assignedTasks Task[]          @relation("TaskAssignee")
+  createdTasks  Task[]          @relation("TaskCreator")
+  comments      Comment[]
+  activityLogs  ActivityLog[]
+  
+  ownedTeams    Team[]          @relation("TeamOwner")
+  teamMemberships TeamMember[]
+}
+
+model Team {
+  id         String   @id @default(uuid())
+  name       String
+  code       String   @unique // Join code
+  owner_id   String
+  owner      User     @relation("TeamOwner", fields: [owner_id], references: [id])
+  created_at DateTime @default(now())
+  
+  members    TeamMember[]
+  projects   Project[]
+}
+
+model TeamMember {
+  id      String @id @default(uuid())
+  team_id String
+  team    Team   @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([team_id, user_id])
+}
+
+model Project {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  color       String          @default("#5B4FCF")
+  emoji       String          @default("🚀")
+  owner_id    String
+  owner       User            @relation("ProjectOwner", fields: [owner_id], references: [id])
+  team_id     String?
+  team        Team?           @relation(fields: [team_id], references: [id])
+  created_at  DateTime        @default(now())
+  
+  members      ProjectMember[]
+  tasks        Task[]
+  activityLogs ActivityLog[]
+}
+
+model ProjectMember {
+  id         String   @id @default(uuid())
+  project_id String
+  project    Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role       Role     @default(MEMBER)
+  
+  @@unique([project_id, user_id])
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  due_date    DateTime?
+  order       Int          @default(0)
+  
+  project_id  String
+  project     Project      @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  
+  assignee_id String?
+  assignee    User?        @relation("TaskAssignee", fields: [assignee_id], references: [id])
+  
+  created_by  String
+  creator     User         @relation("TaskCreator", fields: [created_by], references: [id])
+  
+  parent_id   String?
+  parent      Task?        @relation("Subtasks", fields: [parent_id], references: [id])
+  subtasks    Task[]       @relation("Subtasks")
+  
+  comments    Comment[]
+  
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+}
+
+model Comment {
+  id         String   @id @default(uuid())
+  content    String
+  task_id    String
+  task       Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  author_id  String
+  author     User     @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  project_id String
+  project    Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  action     String
+  details    String?
+  created_at DateTime @default(now())
+}
