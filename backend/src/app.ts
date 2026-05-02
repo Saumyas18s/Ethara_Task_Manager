@@ -40,10 +40,12 @@ if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.join(__dirname, '../../frontend/dist');
   app.use(express.static(frontendPath));
   
-  app.get('(.*)', (req: Request, res: Response) => {
+  // Final catch-all for React routing (Express 5 compatible)
+  app.use((req: Request, res: Response, next) => {
     if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(frontendPath, 'index.html'));
+      return res.sendFile(path.join(frontendPath, 'index.html'));
     }
+    next();
   });
 }
 
